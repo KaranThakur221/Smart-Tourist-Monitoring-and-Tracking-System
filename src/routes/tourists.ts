@@ -20,10 +20,6 @@ router.get('/', requireAuth, requireRole(['admin', 'officer', 'analyst']), (_req
   return res.json({ items: [], total: 0 });
 });
 
-router.get('/:id', requireAuth, requireRole(['admin', 'officer', 'analyst']), (req: Request, res: Response) => {
-  return res.json({ id: req.params.id, query: req.query });
-});
-
 export default router;
 
 

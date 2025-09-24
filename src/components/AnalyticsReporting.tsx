@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { BarChart3, TrendingUp, MapPin, Clock, Users, AlertTriangle, Download, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
@@ -7,30 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 
-export function AnalyticsReporting({ token }: { token?: string | null }) {
+export function AnalyticsReporting() {
   const [timeRange, setTimeRange] = useState('7d');
   const [selectedRegion, setSelectedRegion] = useState('all');
-  const [summary, setSummary] = useState<{ tourists: number; activeAlerts: number } | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    let ignore = false;
-    const run = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch('/api/analytics/summary', {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!ignore) setSummary({ tourists: data.tourists ?? 0, activeAlerts: data.activeAlerts ?? 0 });
-      } finally {
-        setLoading(false);
-      }
-    };
-    run();
-    return () => { ignore = true; };
-  }, [token]);
 
   // Mock analytics data
   const touristActivityData = [
@@ -141,7 +120,7 @@ export function AnalyticsReporting({ token }: { token?: string | null }) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Tourists</p>
-                <p className="text-2xl font-semibold">{summary ? summary.tourists : 2847}</p>
+                <p className="text-2xl font-semibold">2,847</p>
                 <p className="text-xs text-green-600 flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" />
                   +12% from last week
@@ -157,7 +136,7 @@ export function AnalyticsReporting({ token }: { token?: string | null }) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Active Alerts</p>
-                <p className="text-2xl font-semibold">{summary ? summary.activeAlerts : 9}</p>
+                <p className="text-2xl font-semibold">9</p>
                 <p className="text-xs text-red-600 flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" />
                   -25% from yesterday

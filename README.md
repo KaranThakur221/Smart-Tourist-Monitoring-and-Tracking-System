@@ -1,7 +1,7 @@
 
   # Smart Tourist Safety System
 
-  A React + Vite dashboard for managing tourist safety (alerts, verification, analytics) with an Express API.
+  A React + Vite dashboard for managing tourist safety (alerts, verification, analytics) with an optional Express API scaffold.
 
   Original design: `https://www.figma.com/design/D2zqdALVGNoREi8n2y8t7s/Smart-Tourist-Safety-System`
 
@@ -16,93 +16,68 @@
 
   ```
   src/
-    App.tsx              # Main UI (routes: /, /alerts, /verification, /analytics, /tourists/:id)
+    App.tsx              # Main UI (tabs: Dashboard, Alerts, Verification, Analytics)
     components/          # Feature UIs + ui primitives
     midleware/           # Express middlewares (auth, logger, rate limiter, validation, errors)
-    routes/              # Express routes (auth, alerts, tourists, analytics, echo, index)
+    routes/              # Express routes (auth, alerts, tourists, analytics, health, index)
     styles/              # Global styles
     main.tsx, index.css  # Vite entry
-    server.ts            # Express server entry
   ```
 
-  ## Prerequisites
+  ## Run the UI
 
-  - Node.js 18+ (Node 20+ recommended)
-  - npm 9+
-
-  ## Install Dependencies
-
-  ```bash
-  npm i
-  ```
-
-  ## Run the UI (Vite)
-
-  1) Start the dev server:
-     ```bash
-     npm run dev
-     ```
-  2) Open the printed URL (typically `http://localhost:5173`)
+  1) Install deps: `npm i`
+  2) Start dev server: `npm run dev`
+  3) Open the printed URL (typically `http://localhost:5173`)
 
   Notes:
-  - UI uses React Router: `/`, `/alerts`, `/verification`, `/analytics`, `/tourists/:id`.
-  - API requests go to `/api/*` and are proxied to the Express server on port 3000.
+  - UI uses mocked data and simple in-memory auth.
+  - No API calls are wired by default.
 
-  ## Run the API (Express)
+  ## Optional: Run the API
 
-  Scripts are already set up:
+  The repo includes middlewares and route modules but no server entry by default. To run an API locally:
 
-  - Start once:
-    ```bash
-    npm run server
-    ```
-  - Watch mode (auto-restart on changes):
-    ```bash
-    npm run server:watch
-    ```
+  1) Ensure deps: `express`, `express-rate-limit`, `@types/express`, `@types/express-rate-limit` (installed already).
+  2) Create `server.ts` in the project root:
 
-  The API listens at `http://localhost:3000`.
+  ```ts
+  import express from 'express';
+  import cors from 'cors';
+  import { registerRoutes } from './src/routes';
+  import { errorHandler, notFoundHandler } from './src/midleware/errorHandler';
+
+  const app = express();
+  const port = process.env.PORT || 3000;
+
+  app.use(cors());
+  app.use(express.json());
+  registerRoutes(app);
+  app.use(notFoundHandler);
+  app.use(errorHandler);
+
+  app.listen(port, () => console.log(`API http://localhost:${port}`));
+  ```
+
+  3) Add a script to `package.json`:
+
+  ```json
+  { "scripts": { "api": "ts-node server.ts" } }
+  ```
+
+  4) Start: `npm run api`
 
   ### API Endpoints (summary)
 
-  - `GET /api/echo` and `GET /api/echo/:id` (no auth; echoes query/params/body)
+  - `GET /health/live`, `GET /health/ready`
   - `POST /api/auth/login`, `POST /api/auth/logout`
   - `GET /api/alerts`, `POST /api/alerts`
-  - `POST /api/tourists/verify`, `GET /api/tourists`, `GET /api/tourists/:id`
+  - `POST /api/tourists/verify`, `GET /api/tourists`
   - `GET /api/analytics/summary`
 
   Middlewares: request logging, rate limiting, simple bearer auth (`src/midleware/auth.ts`), validation, centralized error handling.
 
   Replace the placeholder auth with real JWT verification before production.
-
-  ## Typical Local Workflow
-
-  1) Start the API (port 3000):
-     ```bash
-     npm run server:watch
-     ```
-  2) Start the UI (port 5173):
-     ```bash
-     npm run dev
-     ```
-  3) Log in from the UI. The app stores the returned token and sends it as `Authorization: Bearer <token>` for protected routes.
-
-  ## Quick Tests
-
-  - Login (returns a demo token):
-    ```bash
-    curl -s -X POST http://localhost:3000/api/auth/login -H "Content-Type: application/json" -d '{"username":"demo","password":"demo"}'
-    ```
-
-  - List alerts (requires token):
-    ```bash
-    curl -s http://localhost:3000/api/alerts -H "Authorization: Bearer demo-token"
-    ```
-
-  - Echo with query/params (no auth):
-    ```bash
-    curl -s "http://localhost:3000/api/echo/123?name=alex&role=officer"
-    ```
 
 ## Installing required dependencies:
 
@@ -113,5 +88,4 @@
 
   - `npm run dev` – Vite dev server
   - `npm run build` – production build
-  - `npm run server` – start Express API
-  - `npm run server:watch` – start Express API in watch mode
+  - `npm run api` – start Express API (after adding `server.ts`)

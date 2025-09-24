@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 interface LoginScreenProps {
-  onLogin: (token: string) => void;
+  onLogin: () => void;
 }
 
 export function LoginScreen({ onLogin }: LoginScreenProps) {
@@ -19,20 +19,11 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     region: ''
   });
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!credentials.username || !credentials.password || !credentials.department) return;
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: credentials.username, password: credentials.password }),
-      });
-      if (!res.ok) throw new Error('Login failed');
-      const data = await res.json();
-      onLogin(data.token as string);
-    } catch {
-      // noop demo
+    // In a real application, this would validate credentials
+    if (credentials.username && credentials.password && credentials.department) {
+      onLogin();
     }
   };
 
@@ -49,7 +40,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         </CardHeader>
         
         <CardContent>
-          <form method="post" onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username">Official Username</Label>
               <Input
