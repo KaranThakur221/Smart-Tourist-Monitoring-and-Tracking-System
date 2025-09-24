@@ -3,8 +3,6 @@
 
   A React + Vite dashboard for managing tourist safety (alerts, verification, analytics) with an optional Express API scaffold.
 
-  Original design: `https://www.figma.com/design/D2zqdALVGNoREi8n2y8t7s/Smart-Tourist-Safety-System`
-
   ## Tech Stack
 
   - React 18, Vite
