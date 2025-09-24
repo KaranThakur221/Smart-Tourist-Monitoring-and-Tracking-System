@@ -20,12 +20,34 @@ interface Alert {
 
 interface AlertManagementProps {
   alerts: Alert[];
+  token?: string | null;
 }
 
-export function AlertManagement({ alerts: initialAlerts }: AlertManagementProps) {
+export function AlertManagement({ alerts: initialAlerts, token }: AlertManagementProps) {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAlert, setSelectedAlert] = useState<any>(null);
+  const [serverItems, setServerItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    let ignore = false;
+    const run = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch('/api/alerts', {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!ignore) setServerItems(data.items ?? []);
+      } finally {
+        setLoading(false);
+      }
+    };
+    run();
+    return () => { ignore = true; };
+  }, [token]);
 
   // Extended alert data for demonstration
   const extendedAlerts = [

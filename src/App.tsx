@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Routes, Route, Navigate, Link, useNavigate } from 'react-router-dom';
 import { MapPin, AlertTriangle, Users, BarChart3, Settings, Shield, Bell } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Badge } from './components/ui/badge';
@@ -9,18 +10,20 @@ import { AlertManagement } from './components/AlertManagement';
 import { TouristVerification } from './components/TouristVerification';
 import { AnalyticsReporting } from './components/AnalyticsReporting';
 import { LoginScreen } from './components/LoginScreen';
+import { UserDetails } from './components/UserDetails';
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
   const [activeView, setActiveView] = useState('dashboard');
+  const navigate = useNavigate();
   const [alerts] = useState([
     { id: 1, type: 'distress', location: 'Guwahati', severity: 'high', time: '2 min ago' },
     { id: 2, type: 'anomaly', location: 'Shillong', severity: 'medium', time: '5 min ago' },
     { id: 3, type: 'restricted', location: 'Imphal', severity: 'low', time: '12 min ago' }
   ]);
 
-  if (!isAuthenticated) {
-    return <LoginScreen onLogin={() => setIsAuthenticated(true)} />;
+  if (!token) {
+    return <LoginScreen onLogin={(t) => { setToken(t); navigate('/'); }} />;
   }
 
   const navigationItems = [
@@ -63,7 +66,7 @@ export default function App() {
               <p className="font-medium">Officer J. Singh</p>
               <p className="text-muted-foreground">Tourism Dept.</p>
             </div>
-            <Button variant="outline" size="sm" onClick={() => setIsAuthenticated(false)}>
+            <Button variant="outline" size="sm" onClick={() => { setToken(null); navigate('/login'); }}>
               Logout
             </Button>
           </div>
@@ -77,20 +80,21 @@ export default function App() {
             {navigationItems.map((item) => {
               const Icon = item.icon;
               return (
-                <Button
-                  key={item.id}
-                  variant={activeView === item.id ? "secondary" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => setActiveView(item.id)}
-                >
-                  <Icon className="h-4 w-4 mr-2" />
-                  {item.label}
-                  {item.id === 'alerts' && highSeverityAlerts > 0 && (
-                    <Badge className="ml-auto bg-destructive text-destructive-foreground">
-                      {highSeverityAlerts}
-                    </Badge>
-                  )}
-                </Button>
+                <Link key={item.id} to={item.id === 'dashboard' ? '/' : `/${item.id}`}>
+                  <Button
+                    variant={activeView === item.id ? "secondary" : "ghost"}
+                    className="w-full justify-start"
+                    onClick={() => setActiveView(item.id)}
+                  >
+                    <Icon className="h-4 w-4 mr-2" />
+                    {item.label}
+                    {item.id === 'alerts' && highSeverityAlerts > 0 && (
+                      <Badge className="ml-auto bg-destructive text-destructive-foreground">
+                        {highSeverityAlerts}
+                      </Badge>
+                    )}
+                  </Button>
+                </Link>
               );
             })}
           </div>
@@ -124,10 +128,14 @@ export default function App() {
 
         {/* Main Content */}
         <main className="flex-1 p-6">
-          {activeView === 'dashboard' && <DashboardMap alerts={alerts} />}
-          {activeView === 'alerts' && <AlertManagement alerts={alerts} />}
-          {activeView === 'verification' && <TouristVerification />}
-          {activeView === 'analytics' && <AnalyticsReporting />}
+          <Routes>
+            <Route path="/" element={<DashboardMap alerts={alerts} />} />
+            <Route path="/alerts" element={<AlertManagement alerts={alerts} token={token} />} />
+            <Route path="/verification" element={<TouristVerification token={token} />} />
+            <Route path="/analytics" element={<AnalyticsReporting token={token} />} />
+            <Route path="/tourists/:id" element={<UserDetails token={token} />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </main>
       </div>
     </div>
